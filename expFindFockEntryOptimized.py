@@ -30,7 +30,7 @@ def get_b_dist(i_target, k_target, eta):
 # --- Paramètres pour de grands nombres ---
 I_SECRET = 200  # Nombres plus grands !
 K_SECRET = 180
-N_SHOTS = 100   # Un nombre de tirs raisonnable
+N_SHOTS = 10   # Un nombre de tirs raisonnable
 
 print(f"--- PROTOCOLE CROISÉ (Vraies valeurs : i={I_SECRET}, k={K_SECRET}) ---")
 
