@@ -1,2 +1,0 @@
-- La sdp ne modélise pas de bruits non plus donc yen a pas lol. Pareil il faut le simuler. 
-- comment choisir la force de notre solveur ? 
