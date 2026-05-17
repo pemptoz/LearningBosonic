@@ -12,8 +12,8 @@ except FileNotFoundError:
     exit()
 
 # --- 2. L'EXPÉRIENCE SECRÈTE ---
-I_SECRET = 500
-K_SECRET = 500
+I_SECRET = 50
+K_SECRET = 60
 N_SHOTS = 100  # Nombre de tirs expérimentaux
 
 # On génère les mesures du laboratoire
