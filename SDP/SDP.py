@@ -4,14 +4,14 @@ from qutip import basis, tensor, destroy, qeye, ket2dm, expect
 
 # ÉTAPE 1 : Paramètres du système
 
-i = 4  # Nombre de photons injectés en entrée 1
-k = 2  # Nombre de photons injectés en entrée 2
+i = 3  # Nombre de photons injectés en entrée 1
+k = 5  # Nombre de photons injectés en entrée 2
 N_tot = i + k  # Nombre total de photons dans le système
 
 # Troncature de l'espace de Fock
 # On ajoute une petite marge (+2) pour autoriser notre futur algorithme 
 # à "explorer" les états avec un peu plus de photons à cause du bruit.
-N_max = 15
+N_max = 10
 dim = N_max + 1  # La dimension des matrices (de 0 à N_max photons)
 
 print(f"Simulation pour |{i},{k}> avec troncature à {N_max} photons.")
@@ -34,7 +34,7 @@ rho_in = ket2dm(psi_in)
 a = tensor(destroy(dim), qeye(dim))
 b = tensor(qeye(dim), destroy(dim))
 
-# Transmittance du Beam-Splitter (50:50 correspond à un angle theta = pi/4)
+# Transmittance du Beam-Splitter (75:25 correspond à un angle theta = pi/6)
 theta = np.pi / 6
 
 # L'opérateur unitaire d'un Beam-Splitter s'écrit avec une exponentielle
@@ -65,6 +65,10 @@ for n in range(dim):
     B_n_the = expect(E_n, rho_in)
     B_mesures.append(B_n_the)
     
+# Normalisation
+B_arr = np.array(B_mesures)
+B_arr = np.clip(B_arr, 0, None)
+B_arr /= B_arr.sum()  # renormalisation défensive
 
 
 # Affichage des résultats
@@ -77,7 +81,7 @@ for n in range(dim):
 num_shots = 1000  
 
 # On demande à numpy de simuler 1000 tirages basés sur nos probabilités parfaites
-tirages_bruites = np.random.multinomial(num_shots, B_mesures)
+tirages_bruites = np.random.multinomial(num_shots, B_arr)
 
 # On recalcule les nouvelles probabilités "mesurées" par notre faux détecteur
 B_mesures_bruites = tirages_bruites / num_shots
@@ -119,7 +123,8 @@ N_tot_op = (N_a + N_b).full()
 # Paramètres de l'algorithme IRL1
 iterations_irl1 = 5
 epsilon = 1e-3
-lambda_penalite = 0.00005  # À ajuster selon le niveau de bruit
+lambda_penalite = 0.0005  # À ajuster selon le niveau de bruit
+#lambda_penalite = 0.005 / (np.sum(B_mesures_bruites**2) + 1e-10)
 
 # Initialisation des poids (tous à 1 au départ)
 W = np.ones(dim_tot)
