@@ -27,26 +27,20 @@ def get_b_dist(i_target, k_target, eta):
     dist = [get_b(i_target, k_target, n) for n in range(N + 1)]
     return np.array(dist)
 
-# --- PARAMÈTRES DE LA BANQUE ---
 N_MAX = 60
 ETA = 0.3
 banque_theorique = {}
 
-print(f"Création de la banque de données pour i+k <= {N_MAX} (eta={ETA})...")
 
-# On calcule absolument toutes les combinaisons
 for N in range(N_MAX + 1):
     for i in range(N + 1):
         k = N - i
-        # Calcul et correction des éventuelles erreurs d'arrondis
+    
         dist = get_b_dist(i, k, ETA)
         dist = np.maximum(dist, 0)
         dist /= np.sum(dist)
         
         banque_theorique[(i, k)] = dist
 
-# --- SAUVEGARDE SUR LE DISQUE ---
 with open('banque_fock.pkl', 'wb') as fichier:
     pickle.dump(banque_theorique, fichier)
-
-print("Succès ! La banque a été sauvegardée dans le fichier 'banque_fock.pkl'.")

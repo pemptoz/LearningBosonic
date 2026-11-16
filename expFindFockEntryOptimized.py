@@ -27,45 +27,28 @@ def get_b_dist(i_target, k_target, eta):
     dist_array = np.array(dist)
     return np.maximum(dist_array, 0) / np.sum(np.maximum(dist_array, 0))
 
-# --- Paramètres pour de grands nombres ---
-I_SECRET = 200  # Nombres plus grands !
+I_SECRET = 200 
 K_SECRET = 180
-N_SHOTS = 10   # Un nombre de tirs raisonnable
+N_SHOTS = 10   
 
-print(f"--- PROTOCOLE CROISÉ (Vraies valeurs : i={I_SECRET}, k={K_SECRET}) ---")
-
-# ==========================================
-# EXPÉRIENCE A (eta = 0.9)
-# ==========================================
 ETA_A = 0.9
 dist_A = get_b_dist(I_SECRET, K_SECRET, ETA_A)
 mesures_A = np.random.choice(np.arange(I_SECRET + K_SECRET + 1), size=N_SHOTS, p=dist_A)
 mu_A = np.mean(mesures_A)
 print(f"Moyenne mesurée avec eta=0.9 : {mu_A:.2f}")
 
-# ==========================================
-# EXPÉRIENCE B (eta = 0.1)
-# ==========================================
 ETA_B = 0.1
 dist_B = get_b_dist(I_SECRET, K_SECRET, ETA_B)
 mesures_B = np.random.choice(np.arange(I_SECRET + K_SECRET + 1), size=N_SHOTS, p=dist_B)
 mu_B = np.mean(mesures_B)
-print(f"Moyenne mesurée avec eta=0.1 : {mu_B:.2f}")
 
-# ==========================================
-# RÉSOLUTION DU SYSTÈME CROISÉ
-# ==========================================
-# 1. On trouve N en additionnant les deux moyennes
 N_estime_brut = mu_A + mu_B
 N_estime = int(round(N_estime_brut))
 
-# 2. On trouve l'écart (i - k) en soustrayant les moyennes
 # mu_A - mu_B = 0.8 * (i - k)
 ecart_ik = (mu_A - mu_B) / 0.8
 
-# 3. On en déduit i et k (puisque i = (N + ecart)/2 et k = (N - ecart)/2)
 i_estime = int(round((N_estime + ecart_ik) / 2))
 k_estime = int(round((N_estime - ecart_ik) / 2))
 
-print(f"\n--- RÉSULTAT FINAL ---")
 print(f"Estimation croisée : i = {i_estime}, k = {k_estime} (Total N = {i_estime + k_estime})")

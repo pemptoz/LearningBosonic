@@ -11,20 +11,16 @@ def calculate_bn_ik(n_target, i_target, k_target, eta):
     eta_bar = 1 - eta
 
     def get_b(i, k, n):
-        # --- Cas de base et conditions aux limites ---
         if n < 0 or i < 0 or k < 0 or n > (i + k):
             return 0.0
         
-        # État vide (0 photon en entrée, 0 en sortie)
         if i == 0 and k == 0:
             return 1.0 if n == 0 else 0.0
         
-        # Vérification si déjà calculé
         state = (i, k, n)
         if state in memo:
             return memo[state]
 
-        # --- Application de la relation de récurrence ---
         if i > 0 and k > 0:
             res = (eta * get_b(i-1, k, n-1) + 
                    eta * get_b(i, k-1, n) + 
@@ -43,7 +39,6 @@ def calculate_bn_ik(n_target, i_target, k_target, eta):
 
     return get_b(i_target, k_target, n_target)
 
-# --- Exemple d'utilisation ---
 
 i, k =7, 86
 eta = 0.5

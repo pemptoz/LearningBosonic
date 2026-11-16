@@ -3,21 +3,13 @@ import pickle
 import time
 
 def generer_banque_ultra_rapide(N_MAX, eta):
-    print(f"Création de la Matrice 3D pour N_MAX = {N_MAX}...")
-    
-    # 1. CRÉATION DE LA MATRICE GLOBALE
-    # On crée un cube géant rempli de zéros. Dimensions : (i, k, n)
-    # Pour N=200, ce cube pèse environ 65 Mo en RAM. C'est très léger.
+
     B = np.zeros((N_MAX + 1, N_MAX + 1, N_MAX + 1))
     
     eta_bar = 1 - eta
-    
-    # 2. LA BASE (Condition initiale)
-    # Si 0 photon rentre, on a 100% de chance d'avoir 0 photon en sortie
+
     B[0, 0, 0] = 1.0
     
-    # 3. LE REMPLISSAGE ITÉRATIF (Sans aucune récursivité !)
-    # On remplit le cube couche par couche
     for i in range(N_MAX + 1):
         for k in range(N_MAX + 1 - i):
             if i == 0 and k == 0:

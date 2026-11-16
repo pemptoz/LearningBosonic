@@ -3,7 +3,6 @@ import numpy as np
 
 sys.setrecursionlimit(2000)
 
-# --- Fonction théorique (identique) ---
 def get_b_dist(i_target, k_target, eta):
     memo = {}
     eta_bar = 1 - eta
@@ -27,32 +26,21 @@ def get_b_dist(i_target, k_target, eta):
     dist_array = np.array(dist)
     return np.maximum(dist_array, 0) / np.sum(np.maximum(dist_array, 0))
 
-# --- Paramètres Cachés ---
+
 I_SECRET = 20
 K_SECRET = 40
-N_SHOTS = 100 # Seulement 100 tirs !
+N_SHOTS = 100 
 
-print("--- DÉBUT DU PROTOCOLE HYBRIDE ---")
 
-# ==========================================
-# EXPÉRIENCE 1 : Trouver le total (eta = 0.5)
-# ==========================================
 ETA_1 = 0.5
 dist_1 = get_b_dist(I_SECRET, K_SECRET, ETA_1)
 mesures_1 = np.random.choice(np.arange(I_SECRET + K_SECRET + 1), size=N_SHOTS, p=dist_1)
 
-# On estime N uniquement avec la moyenne
 moyenne_1 = np.mean(mesures_1)
 N_estime = int(round(2 * moyenne_1))
 
-print(f"Étape 1 (eta=0.5) : Moyenne mesurée = {moyenne_1:.2f}  => N estimé = {N_estime}")
-
-# ==========================================
-# EXPÉRIENCE 2 : Trouver la répartition (eta = 0.1)
-# ==========================================
 ETA_2 = 0.1
 dist_2 = get_b_dist(I_SECRET, K_SECRET, ETA_2)
-# En réalité le détecteur ne mesure qu'au maximum N_estime photons
 mesures_2 = np.random.choice(np.arange(I_SECRET + K_SECRET + 1), size=N_SHOTS, p=dist_2)
 
 moyenne_2 = np.mean(mesures_2)
@@ -66,6 +54,5 @@ i_estime = int(round(i_calcule))
 k_estime = N_estime - i_estime
 
 print(f"Étape 2 (eta=0.1) : Moyenne mesurée = {moyenne_2:.2f}")
-print(f"\n--- RÉSULTAT FINAL ---")
 print(f"Estimation : i = {i_estime}, k = {k_estime}")
 print(f"Vérité abs : i = {I_SECRET}, k = {K_SECRET}")
