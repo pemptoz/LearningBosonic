@@ -14,30 +14,23 @@ G2 = np.array([[0, 0, 1, 0], [0, 0, 0, 1], [-1, 0, 0, 0], [0, -1, 0, 0]])
 G3 = np.array([[0, 1, 0, 0], [-1, 0, 0, 0], [0, 0, 0, -1], [0, 0, 1, 0]]) 
 
 def parametres_to_W(params):
-    """ Transforme 4 paramètres libres en une matrice parfaitement symplectique et orthogonale. """
+    """ Create une matrice symplectique orthogonal """
     t0, t1, t2, t3 = params
     A = t0*G0 + t1*G1 + t2*G2 + t3*G3
     return expm(A)
 
-# =====================================================================
-# 1. GÉNÉRATION DU CANAL ET SIMULATION DES DONNÉES EXPERIMENTALES
-# =====================================================================
-print("--- 1. CRÉATION DU CANAL ET MESURE HÉTÉRODYNE ---")
 
-N_dim = 30
-i_fock = 5   # Mode A d'origine
-k_fock = 10  # Mode B d'origine
-N_shots = 200000
+N_dim = 40
+i_fock = 15   # Mode A d'origine
+k_fock = 20  # Mode B d'origine
+N_shots = 10000
 thinning = 25
 
-# Création d'un canal caché S_phys (mélange arbitraire)
 vraies_phases = np.random.uniform(-1.5, 1.5, 4)
 S_phys = parametres_to_W(vraies_phases)
 
-print("Vraie matrice du canal caché (S_phys) :")
 print(np.round(S_phys, 3))
 
-# Traduction de S_phys en Hamiltonien quantique pour QuTiP
 U_complexe = np.zeros((2, 2), dtype=complex)
 U_complexe[0, 0] = S_phys[0, 0] - 1j*S_phys[0, 1]
 U_complexe[0, 1] = S_phys[0, 2] - 1j*S_phys[0, 3]
@@ -55,11 +48,9 @@ H_quantum = (
 )
 U_quantum = (1j * H_quantum).expm()
 
-# État de sortie mélangé
 psi_out = U_quantum * qt.tensor(qt.fock(N_dim, i_fock), qt.fock(N_dim, k_fock))
 coeffs = psi_out.full().reshape(N_dim, N_dim)
 
-# Échantillonnage MCMC (Mesure hétérodyne simulée)
 fock_indices = np.arange(N_dim)
 sqrt_fact = np.sqrt(sep.factorial(fock_indices))
 
@@ -71,7 +62,6 @@ def log_Q_husimi(coords):
     prob = np.abs(v0 @ coeffs @ v1)**2 * np.exp(-(q0**2 + p0**2 + q1**2 + p1**2)/2) / (np.pi**2)
     return np.log(prob) if prob > 1e-20 else -np.inf
 
-print(f"Génération de {N_shots} tirs MCMC (Patiente un instant)...")
 X_list = []
 coords = np.zeros(4)
 log_p = log_Q_husimi(coords)
@@ -84,10 +74,6 @@ for _ in range(N_shots):
     X_list.append(coords.copy())
 X_obs = np.array(X_list).T
 
-# =====================================================================
-# 2. BLOCK-ICA : SÉPARATION AVEUGLE GÉOMÉTRIQUE
-# =====================================================================
-print("\n--- 2. BLOCK-ICA : RECHERCHE DE LA MATRICE DE SÉPARATION ---")
 
 def cout_covariance_rayons(params):
     W = parametres_to_W(params)
@@ -95,7 +81,7 @@ def cout_covariance_rayons(params):
     r0_sq, r1_sq = Y[0]**2 + Y[1]**2, Y[2]**2 + Y[3]**2
     return np.cov(r0_sq, r1_sq)[0, 1]**2
 
-# Multi-start pour éviter les faux plats
+
 meilleur_score = np.inf
 meilleurs_params = None
 points_depart = [np.zeros(4)] + [np.random.uniform(-2, 2, 4) for _ in range(4)]
@@ -109,28 +95,20 @@ for start in points_depart:
 
 W_opt = parametres_to_W(meilleurs_params)
 
-print("Matrice de séparation trouvée (W_opt) :")
 print(np.round(W_opt, 3))
-print("\nProduit de contrôle W_opt @ S_phys (Devrait être bloc-diagonale) :")
 print(np.round(W_opt @ S_phys, 3))
 
-# =====================================================================
-# 3. TOMOGRAPHIE (MLE) ET IDENTIFICATION DES ÉTATS
-# =====================================================================
-print("\n--- 3. RECONSTRUCTION MLE DES SIGNAUX SÉPARÉS ---")
 
 Y_final = W_opt @ X_obs
 r0_sq = Y_final[0]**2 + Y_final[1]**2
 r1_sq = Y_final[2]**2 + Y_final[3]**2
 
-# Permutation automatique basée sur l'énergie moyenne (5 photons vs 10 photons)
 if np.mean(r0_sq) < np.mean(r1_sq):
     rA_sq, rB_sq = r0_sq, r1_sq
 else:
     rA_sq, rB_sq = r1_sq, r0_sq
 
 def tomographie_mle(r_sq, N_max=16):
-    """ Reconstruction de la matrice densité diagonale depuis les intensités. """
     N_data = len(r_sq)
     M = np.zeros((N_data, N_max + 1))
     for n in range(N_max + 1):
@@ -144,9 +122,8 @@ def tomographie_mle(r_sq, N_max=16):
         p_est /= np.sum(p_est)
     return p_est
 
-print("Tomographie en cours...")
-p_A = tomographie_mle(rA_sq, N_max=16)
-p_B = tomographie_mle(rB_sq, N_max=16)
+p_A = tomographie_mle(rA_sq, N_max=22)
+p_B = tomographie_mle(rB_sq, N_max=22)
 
 fidelite_A = p_A[i_fock]
 fidelite_B = p_B[k_fock]
